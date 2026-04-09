@@ -1,58 +1,54 @@
 import { useForm } from 'react-hook-form'
-import { yupResolver } from '@hookform/resolvers/yup'
-import * as yup from 'yup'
 import { useAuth } from '../context/AuthContext'
 import { Link } from 'react-router-dom'
 
-const schema = yup.object({
-  email: yup.string().email('Invalid email').required('Email is required'),
-  password: yup.string().min(6, 'Minimum 6 characters').required('Password is required'),
-})
-
-type FormData = yup.InferType<typeof schema>
+interface FormData {
+  email: string
+  password: string
+}
 
 export default function Login() {
   const { login } = useAuth()
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
-    resolver: yupResolver(schema)
-  })
+  const { register, handleSubmit } = useForm<FormData>()
 
   const onSubmit = async (data: FormData) => {
     try {
       await login(data.email, data.password)
-    } catch (err) {
+    } catch {
       alert('Invalid credentials')
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <input
-              {...register('email')}
-              placeholder="Email"
-              className="w-full border p-2 rounded"
-            />
-            <p className="text-red-500 text-sm">{errors.email?.message}</p>
-          </div>
-          <div>
-            <input
-              {...register('password')}
-              type="password"
-              placeholder="Password"
-              className="w-full border p-2 rounded"
-            />
-            <p className="text-red-500 text-sm">{errors.password?.message}</p>
-          </div>
-          <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+    <div style={{ minHeight: '100vh', backgroundColor: '#0f1117', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'DM Sans', sans-serif" }}>
+      <div style={{ backgroundColor: '#161b27', border: '1px solid #1e2433', borderRadius: '16px', padding: '2rem', width: '100%', maxWidth: '420px' }}>
+
+        <h2 style={{ fontSize: '1.6rem', fontWeight: 700, color: '#f1f5f9', margin: '0 0 0.25rem' }}>Welcome back</h2>
+        <p style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '1.5rem' }}>Login to your account</p>
+
+        <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <input
+            {...register('email')}
+            placeholder="Email"
+            style={{ backgroundColor: '#0f1117', border: '1px solid #1e2433', borderRadius: '8px', padding: '0.65rem 0.9rem', color: '#e2e8f0', fontSize: '0.95rem', outline: 'none', width: '100%', boxSizing: 'border-box' }}
+          />
+          <input
+            {...register('password')}
+            type="password"
+            placeholder="Password"
+            style={{ backgroundColor: '#0f1117', border: '1px solid #1e2433', borderRadius: '8px', padding: '0.65rem 0.9rem', color: '#e2e8f0', fontSize: '0.95rem', outline: 'none', width: '100%', boxSizing: 'border-box' }}
+          />
+          <button
+            type="submit"
+            style={{ backgroundColor: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', padding: '0.7rem', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer', marginTop: '0.25rem' }}
+          >
             Login
           </button>
         </form>
-        <p className="text-center mt-4 text-sm">
-          Don't have an account? <Link to="/register" className="text-blue-600">Register</Link>
+
+        <p style={{ marginTop: '1.25rem', fontSize: '0.85rem', color: '#64748b', textAlign: 'center' }}>
+          No account?{' '}
+          <Link to="/register" style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: 500 }}>Register</Link>
         </p>
       </div>
     </div>

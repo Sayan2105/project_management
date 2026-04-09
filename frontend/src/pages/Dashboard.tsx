@@ -1,35 +1,30 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
+import { Project, PaginatedResponse } from '../types'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-
-interface Project {
-  id: number
-  title: string
-  description: string
-  status: string
-}
 
 export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([])
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [search, setSearch] = useState('')
-  const [page, setPage] = useState(1)
-  const [hasNext, setHasNext] = useState(false)
-  const { logout } = useAuth()
+
   const navigate = useNavigate()
+  const { logout } = useAuth()
 
   const fetchProjects = async () => {
-    const res = await api.get(`/projects/?search=${search}&page=${page}`)
-    setProjects(res.data.results)
-    setHasNext(!!res.data.next)
+    try {
+      const res = await api.get<PaginatedResponse<Project>>('/projects/')
+      setProjects(res.data.results)
+    } catch (err) {
+      console.error(err)
+    }
   }
 
-  useEffect(() => { fetchProjects() }, [search, page])
+  useEffect(() => { fetchProjects() }, [])
 
   const createProject = async () => {
-    if (!title) return alert('Title is required')
+    if (!title) return
     await api.post('/projects/', { title, description, status: 'active' })
     setTitle('')
     setDescription('')
@@ -41,70 +36,112 @@ export default function Dashboard() {
     fetchProjects()
   }
 
+  const updateProjectStatus = async (id: number, status: string) => {
+    await api.patch(`/projects/${id}/`, { status })
+    fetchProjects()
+  }
+
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-3xl mx-auto">
+    <div style={{ minHeight: '100vh', backgroundColor: '#0f1117', color: '#e2e8f0', fontFamily: "'DM Sans', sans-serif", padding: '2rem' }}>
 
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">My Projects</h1>
-          <button onClick={logout} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
-            Logout
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', borderBottom: '1px solid #1e2433', paddingBottom: '1rem' }}>
+        <div>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: 700, color: '#f1f5f9', letterSpacing: '-0.5px', margin: 0 }}>
+            My Projects
+          </h1>
+          <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '4px 0 0' }}>{projects.length} project{projects.length !== 1 ? 's' : ''} total</p>
+        </div>
+        <button
+          onClick={logout}
+          style={{ backgroundColor: 'transparent', border: '1px solid #ef4444', color: '#ef4444', padding: '0.4rem 1rem', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500, transition: 'all 0.2s' }}
+          onMouseOver={e => { (e.target as HTMLButtonElement).style.backgroundColor = '#ef4444'; (e.target as HTMLButtonElement).style.color = '#fff' }}
+          onMouseOut={e => { (e.target as HTMLButtonElement).style.backgroundColor = 'transparent'; (e.target as HTMLButtonElement).style.color = '#ef4444' }}
+        >
+          Logout
+        </button>
+      </div>
+
+      {/* Create Form */}
+      <div style={{ backgroundColor: '#161b27', border: '1px solid #1e2433', borderRadius: '12px', padding: '1.25rem', marginBottom: '2rem' }}>
+        <h2 style={{ fontSize: '0.9rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem' }}>New Project</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Project title"
+            style={{ backgroundColor: '#0f1117', border: '1px solid #1e2433', borderRadius: '8px', padding: '0.6rem 0.9rem', color: '#e2e8f0', fontSize: '0.95rem', outline: 'none' }}
+          />
+          <input
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Short description (optional)"
+            style={{ backgroundColor: '#0f1117', border: '1px solid #1e2433', borderRadius: '8px', padding: '0.6rem 0.9rem', color: '#e2e8f0', fontSize: '0.95rem', outline: 'none' }}
+          />
+          <button
+            onClick={createProject}
+            style={{ backgroundColor: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', padding: '0.6rem 1.2rem', fontWeight: 600, cursor: 'pointer', fontSize: '0.9rem', alignSelf: 'flex-start' }}
+          >
+            + Create Project
           </button>
         </div>
+      </div>
 
-        {/* Create Project */}
-        <div className="bg-white p-4 rounded shadow mb-6 space-y-2">
-          <h2 className="font-semibold text-lg">New Project</h2>
-          <input value={title} onChange={e => setTitle(e.target.value)}
-            placeholder="Title" className="w-full border p-2 rounded" />
-          <input value={description} onChange={e => setDescription(e.target.value)}
-            placeholder="Description" className="w-full border p-2 rounded" />
-          <button onClick={createProject}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            Create
-          </button>
-        </div>
-
-        {/* Search */}
-        <input value={search} onChange={e => { setSearch(e.target.value); setPage(1) }}
-          placeholder="Search projects..." className="w-full border p-2 rounded mb-4 bg-white" />
-
-        {/* Project List */}
-        {projects.map(p => (
-          <div key={p.id} className="bg-white p-4 rounded shadow mb-3 flex justify-between items-center">
-            <div>
-              <h3 className="font-semibold text-lg">{p.title}</h3>
-              <p className="text-gray-500 text-sm">{p.description}</p>
-              <span className={`text-xs px-2 py-1 rounded ${p.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>
+      {/* Project Cards */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        {projects.map((p) => (
+          <div
+            key={p.id}
+            style={{ backgroundColor: '#161b27', border: '1px solid #1e2433', borderRadius: '12px', padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'border-color 0.2s' }}
+          >
+            {/* Left */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: '#f1f5f9' }}>{p.title}</h3>
+              {p.description && <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>{p.description}</p>}
+              <span style={{
+                display: 'inline-block', marginTop: '4px',
+                padding: '2px 10px', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 500,
+                backgroundColor: p.status === 'active' ? '#052e16' : '#1e2433',
+                color: p.status === 'active' ? '#4ade80' : '#94a3b8',
+                border: `1px solid ${p.status === 'active' ? '#166534' : '#334155'}`
+              }}>
                 {p.status}
               </span>
             </div>
-            <div className="flex gap-2">
-              <button onClick={() => navigate(`/projects/${p.id}`)}
-                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
+
+            {/* Right */}
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <select
+                value={p.status}
+                onChange={(e) => updateProjectStatus(p.id, e.target.value)}
+                style={{ backgroundColor: '#0f1117', border: '1px solid #1e2433', color: '#94a3b8', padding: '0.35rem 0.6rem', borderRadius: '8px', fontSize: '0.82rem', cursor: 'pointer' }}
+              >
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+              </select>
+
+              <button
+                onClick={() => navigate(`/projects/${p.id}`)}
+                style={{ backgroundColor: '#1d4ed8', color: '#fff', border: 'none', borderRadius: '8px', padding: '0.35rem 0.9rem', fontSize: '0.82rem', fontWeight: 500, cursor: 'pointer' }}
+              >
                 View
               </button>
-              <button onClick={() => deleteProject(p.id)}
-                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+
+              <button
+                onClick={() => deleteProject(p.id)}
+                style={{ backgroundColor: 'transparent', border: '1px solid #7f1d1d', color: '#f87171', borderRadius: '8px', padding: '0.35rem 0.9rem', fontSize: '0.82rem', fontWeight: 500, cursor: 'pointer' }}
+              >
                 Delete
               </button>
             </div>
           </div>
         ))}
 
-        {/* Pagination */}
-        <div className="flex gap-3 mt-4">
-          <button disabled={page === 1} onClick={() => setPage(p => p - 1)}
-            className="bg-gray-300 px-4 py-2 rounded disabled:opacity-50">
-            Prev
-          </button>
-          <button disabled={!hasNext} onClick={() => setPage(p => p + 1)}
-            className="bg-gray-300 px-4 py-2 rounded disabled:opacity-50">
-            Next
-          </button>
-        </div>
-
+        {projects.length === 0 && (
+          <div style={{ textAlign: 'center', color: '#334155', padding: '3rem', border: '1px dashed #1e2433', borderRadius: '12px' }}>
+            No projects yet. Create one above ↑
+          </div>
+        )}
       </div>
     </div>
   )

@@ -1,38 +1,40 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { createContext, useContext, useState } from 'react'
 import api from '../api/axios'
+import { useNavigate } from 'react-router-dom'
 
 interface AuthContextType {
-  user: any
   login: (email: string, password: string) => Promise<void>
   logout: () => void
-  isAuthenticated: boolean
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState(null)
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate()
+  const [token, setToken] = useState(localStorage.getItem('token'))
 
   const login = async (email: string, password: string) => {
     const res = await api.post('/users/login/', { email, password })
-    localStorage.setItem('access_token', res.data.access)
-    setUser(res.data)
+    localStorage.setItem('token', res.data.access)
+    setToken(res.data.access)
     navigate('/dashboard')
   }
 
   const logout = () => {
-    localStorage.removeItem('access_token')
-    setUser(null)
+    localStorage.removeItem('token')
+    setToken(null)
     navigate('/login')
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!localStorage.getItem('access_token') }}>
+    <AuthContext.Provider value={{ login, logout }}>
       {children}
     </AuthContext.Provider>
   )
 }
 
-export const useAuth = () => useContext(AuthContext)!
+export const useAuth = () => {
+  const context = useContext(AuthContext)
+  if (!context) throw new Error('useAuth must be used within AuthProvider')
+  return context
+}

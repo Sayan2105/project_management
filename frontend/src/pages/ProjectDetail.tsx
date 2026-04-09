@@ -1,43 +1,29 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
-
-interface Task {
-  id: number
-  title: string
-  description: string
-  status: string
-  due_date: string
-}
+import { Task } from '../types'
 
 export default function ProjectDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [tasks, setTasks] = useState<Task[]>([])
-  const [filterStatus, setFilterStatus] = useState('')
   const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [dueDate, setDueDate] = useState('')
-  const [status, setStatus] = useState('todo')
 
   const fetchTasks = async () => {
-    const filter = filterStatus ? `?status=${filterStatus}` : ''
-    const res = await api.get(`/projects/${id}/tasks/${filter}`)
-    setTasks(res.data.results || res.data)
+    const res = await api.get(`/projects/${id}/tasks/`)
+    setTasks(res.data.results)
   }
 
-  useEffect(() => { fetchTasks() }, [filterStatus])
+  useEffect(() => { fetchTasks() }, [])
 
   const createTask = async () => {
-    if (!title) return alert('Title is required')
-    await api.post(`/projects/${id}/tasks/`, {
-      title, description, status, due_date: dueDate || null, project: id
-    })
-    setTitle('')
-    setDescription('')
-    setDueDate('')
-    setStatus('todo')
-    fetchTasks()
+    try {
+      await api.post(`/projects/${id}/tasks/`, { title, description: '', status: 'todo', due_date: null, project: Number(id) })
+      setTitle('')
+      fetchTasks()
+    } catch (err: any) {
+      console.log(err.response?.data)
+    }
   }
 
   const deleteTask = async (taskId: number) => {
@@ -46,78 +32,103 @@ export default function ProjectDetail() {
   }
 
   const updateStatus = async (taskId: number, newStatus: string) => {
-    await api.patch(`/projects/${id}/tasks/${taskId}/`, { status: newStatus })
-    fetchTasks()
+    try {
+      await api.patch(`/projects/${id}/tasks/${taskId}/`, { status: newStatus })
+      fetchTasks()
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case 'todo': return { backgroundColor: '#1e2433', color: '#94a3b8', border: '1px solid #334155' }
+      case 'in-progress': return { backgroundColor: '#1c1400', color: '#fbbf24', border: '1px solid #92400e' }
+      case 'done': return { backgroundColor: '#052e16', color: '#4ade80', border: '1px solid #166534' }
+      default: return { backgroundColor: '#1e2433', color: '#94a3b8', border: '1px solid #334155' }
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-3xl mx-auto">
+    <div style={{ minHeight: '100vh', backgroundColor: '#0f1117', color: '#e2e8f0', fontFamily: "'DM Sans', sans-serif", padding: '2rem' }}>
 
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Project Tasks</h1>
-          <button onClick={() => navigate('/dashboard')}
-            className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
-            Back
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', borderBottom: '1px solid #1e2433', paddingBottom: '1rem' }}>
+        <div>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: 700, color: '#f1f5f9', letterSpacing: '-0.5px', margin: 0 }}>
+            Tasks
+          </h1>
+          <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '4px 0 0' }}>{tasks.length} task{tasks.length !== 1 ? 's' : ''} in this project</p>
+        </div>
+        <button
+          onClick={() => navigate(-1)}
+          style={{ backgroundColor: 'transparent', border: '1px solid #1e2433', color: '#64748b', padding: '0.4rem 1rem', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }}
+        >
+          ← Back
+        </button>
+      </div>
+
+      {/* Add Task */}
+      <div style={{ backgroundColor: '#161b27', border: '1px solid #1e2433', borderRadius: '12px', padding: '1.25rem', marginBottom: '2rem' }}>
+        <h2 style={{ fontSize: '0.9rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem' }}>New Task</h2>
+        <div style={{ display: 'flex', gap: '0.6rem' }}>
+          <input
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            placeholder="Task title"
+            style={{ flex: 1, backgroundColor: '#0f1117', border: '1px solid #1e2433', borderRadius: '8px', padding: '0.6rem 0.9rem', color: '#e2e8f0', fontSize: '0.95rem', outline: 'none' }}
+          />
+          <button
+            onClick={createTask}
+            style={{ backgroundColor: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', padding: '0.6rem 1.2rem', fontWeight: 600, cursor: 'pointer', fontSize: '0.9rem' }}
+          >
+            + Add
           </button>
         </div>
+      </div>
 
-        {/* Create Task */}
-        <div className="bg-white p-4 rounded shadow mb-6 space-y-2">
-          <h2 className="font-semibold text-lg">New Task</h2>
-          <input value={title} onChange={e => setTitle(e.target.value)}
-            placeholder="Title" className="w-full border p-2 rounded" />
-          <input value={description} onChange={e => setDescription(e.target.value)}
-            placeholder="Description" className="w-full border p-2 rounded" />
-          <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
-            className="w-full border p-2 rounded" />
-          <select value={status} onChange={e => setStatus(e.target.value)}
-            className="w-full border p-2 rounded">
-            <option value="todo">Todo</option>
-            <option value="in-progress">In Progress</option>
-            <option value="done">Done</option>
-          </select>
-          <button onClick={createTask}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            Add Task
-          </button>
-        </div>
-
-        {/* Filter */}
-        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-          className="w-full border p-2 rounded mb-4 bg-white">
-          <option value="">All Tasks</option>
-          <option value="todo">Todo</option>
-          <option value="in-progress">In Progress</option>
-          <option value="done">Done</option>
-        </select>
-
-        {/* Task List */}
+      {/* Task Cards */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         {tasks.map(t => (
-          <div key={t.id} className="bg-white p-4 rounded shadow mb-3">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="font-semibold">{t.title}</h3>
-                <p className="text-gray-500 text-sm">{t.description}</p>
-                {t.due_date && <p className="text-xs text-gray-400">Due: {t.due_date}</p>}
-              </div>
-              <div className="flex gap-2 items-center">
-                <select value={t.status} onChange={e => updateStatus(t.id, e.target.value)}
-                  className="border p-1 rounded text-sm">
-                  <option value="todo">Todo</option>
-                  <option value="in-progress">In Progress</option>
-                  <option value="done">Done</option>
-                </select>
-                <button onClick={() => deleteTask(t.id)}
-                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm">
-                  Delete
-                </button>
-              </div>
+          <div
+            key={t.id}
+            style={{ backgroundColor: '#161b27', border: '1px solid #1e2433', borderRadius: '12px', padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+          >
+            {/* Left */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: '#f1f5f9' }}>{t.title}</h3>
+              <span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 500, ...getStatusStyle(t.status) }}>
+                {t.status}
+              </span>
+            </div>
+
+            {/* Right */}
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <select
+                value={t.status}
+                onChange={(e) => updateStatus(t.id, e.target.value)}
+                style={{ backgroundColor: '#0f1117', border: '1px solid #1e2433', color: '#94a3b8', padding: '0.35rem 0.6rem', borderRadius: '8px', fontSize: '0.82rem', cursor: 'pointer' }}
+              >
+                <option value="todo">Todo</option>
+                <option value="in-progress">In Progress</option>
+                <option value="done">Done</option>
+              </select>
+
+              <button
+                onClick={() => deleteTask(t.id)}
+                style={{ backgroundColor: 'transparent', border: '1px solid #7f1d1d', color: '#f87171', borderRadius: '8px', padding: '0.35rem 0.9rem', fontSize: '0.82rem', fontWeight: 500, cursor: 'pointer' }}
+              >
+                Delete
+              </button>
             </div>
           </div>
         ))}
 
+        {tasks.length === 0 && (
+          <div style={{ textAlign: 'center', color: '#334155', padding: '3rem', border: '1px dashed #1e2433', borderRadius: '12px' }}>
+            No tasks yet. Add one above ↑
+          </div>
+        )}
       </div>
     </div>
   )

@@ -1,69 +1,62 @@
 import { useForm } from 'react-hook-form'
-import { yupResolver } from '@hookform/resolvers/yup'
-import * as yup from 'yup'
 import api from '../api/axios'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 
-const schema = yup.object({
-  email: yup.string().email('Invalid email').required('Email is required'),
-  username: yup.string().required('Username is required'),
-  password: yup.string().min(6, 'Minimum 6 characters').required('Password is required'),
-})
-
-type FormData = yup.InferType<typeof schema>
+interface FormData {
+  email: string
+  username: string
+  password: string
+}
 
 export default function Register() {
   const navigate = useNavigate()
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
-    resolver: yupResolver(schema)
-  })
+  const { register, handleSubmit } = useForm<FormData>()
 
   const onSubmit = async (data: FormData) => {
     try {
       await api.post('/users/register/', data)
-      alert('Registered successfully! Please login.')
+      alert('Registered. Login now.')
       navigate('/login')
-    } catch (err) {
-      alert('Registration failed')
+    } catch {
+      alert('Error')
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Register</h2>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <input
-              {...register('email')}
-              placeholder="Email"
-              className="w-full border p-2 rounded"
-            />
-            <p className="text-red-500 text-sm">{errors.email?.message}</p>
-          </div>
-          <div>
-            <input
-              {...register('username')}
-              placeholder="Username"
-              className="w-full border p-2 rounded"
-            />
-            <p className="text-red-500 text-sm">{errors.username?.message}</p>
-          </div>
-          <div>
-            <input
-              {...register('password')}
-              type="password"
-              placeholder="Password"
-              className="w-full border p-2 rounded"
-            />
-            <p className="text-red-500 text-sm">{errors.password?.message}</p>
-          </div>
-          <button type="submit" className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+    <div style={{ minHeight: '100vh', backgroundColor: '#0f1117', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'DM Sans', sans-serif" }}>
+      <div style={{ backgroundColor: '#161b27', border: '1px solid #1e2433', borderRadius: '16px', padding: '2rem', width: '100%', maxWidth: '420px' }}>
+
+        <h2 style={{ fontSize: '1.6rem', fontWeight: 700, color: '#f1f5f9', margin: '0 0 0.25rem' }}>Create account</h2>
+        <p style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '1.5rem' }}>Sign up to get started</p>
+
+        <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <input
+            {...register('email')}
+            placeholder="Email"
+            style={{ backgroundColor: '#0f1117', border: '1px solid #1e2433', borderRadius: '8px', padding: '0.65rem 0.9rem', color: '#e2e8f0', fontSize: '0.95rem', outline: 'none', width: '100%', boxSizing: 'border-box' }}
+          />
+          <input
+            {...register('username')}
+            placeholder="Username"
+            style={{ backgroundColor: '#0f1117', border: '1px solid #1e2433', borderRadius: '8px', padding: '0.65rem 0.9rem', color: '#e2e8f0', fontSize: '0.95rem', outline: 'none', width: '100%', boxSizing: 'border-box' }}
+          />
+          <input
+            {...register('password')}
+            type="password"
+            placeholder="Password"
+            style={{ backgroundColor: '#0f1117', border: '1px solid #1e2433', borderRadius: '8px', padding: '0.65rem 0.9rem', color: '#e2e8f0', fontSize: '0.95rem', outline: 'none', width: '100%', boxSizing: 'border-box' }}
+          />
+          <button
+            type="submit"
+            style={{ backgroundColor: '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', padding: '0.7rem', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer', marginTop: '0.25rem' }}
+          >
             Register
           </button>
         </form>
-        <p className="text-center mt-4 text-sm">
-          Already have an account? <Link to="/login" className="text-blue-600">Login</Link>
+
+        <p style={{ marginTop: '1.25rem', fontSize: '0.85rem', color: '#64748b', textAlign: 'center' }}>
+          Already have an account?{' '}
+          <Link to="/login" style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: 500 }}>Login</Link>
         </p>
       </div>
     </div>
