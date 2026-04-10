@@ -1,26 +1,26 @@
-# 🗂️ Project Management Tool
+# Project Management Tool
 
-A full-stack project management app — built with **Django REST Framework** on the backend and **React + TypeScript** on the frontend. Think of it like a lightweight Jira: you log in, create projects, and track tasks inside them.
+A full-stack project management app — built with **Django REST Framework** on the backend and **React + TypeScript** on the frontend. Here you can log in, create projects, and track tasks inside them.
 
-> ⚠️ The assignment asked for Node.js, but Python/Django was explicitly permitted for this submission. Every functional requirement is met.
+ The assignment asked for Node.js, but Python was explicitly permitted for this submission. Every functional requirement is met.
 
 ---
 
-## 🔴 Red Pill — What This Project Actually Does (Plain English)
+## What This Project Actually Does
 
-- You register/login → you get a **JWT token** (like a VIP wristband)
-- Every request after that carries that wristband — so the backend knows who you are
+- You register/login → you get a **JWT token**
+- Every request after that carries that token — so the backend knows who you are
 - You create **projects** (like folders) and **tasks** inside them (like to-do items inside folders)
-- The frontend is a React app in TypeScript — talks to the backend via Axios
+- The frontend is a React app in TypeScript — connects to the backend via Axios
 - The database is **PostgreSQL** — running locally
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 root/
-├── backend/              # Django project
+├── backend/
 │   ├── core/             # Settings, URLs, config
 │   ├── users/            # Register, login, JWT
 │   ├── projects/         # Projects + Tasks CRUD
@@ -43,7 +43,8 @@ root/
 ### Prerequisites
 - Python 3.11+
 - PostgreSQL running locally
-- `pip` available
+- Seeders done
+- Used pytest for unit testing, similar to jest
 
 ### Step 1 — Create & activate virtual environment
 
@@ -80,7 +81,7 @@ DB_HOST=localhost
 DB_PORT=5432
 ```
 
-> 🔴 The app will not start without this file. No `.env` = no DB connection.
+> The app will not start without this file. No `.env` = no DB connection.
 
 ### Step 4 — Create the PostgreSQL database
 
@@ -96,7 +97,7 @@ CREATE DATABASE your_db_name;
 python manage.py migrate
 ```
 
-> Migrations = telling the database to create all the tables. Like running `php artisan migrate` in Laravel.
+> Migrations = telling the database to create all the tables.
 
 ### Step 6 — Start the server
 
@@ -108,12 +109,12 @@ Backend is now live at: `http://127.0.0.1:8000`
 
 ---
 
-## 🌱 Seed the Database (Dummy Data)
+## Seed the Database (Dummy Data)
 
 The seed script creates:
-- ✅ 1 user → `test@example.com` / `Test@123`
-- ✅ 2 projects linked to that user
-- ✅ 3 tasks per project (6 tasks total)
+- 1 user → `test@example.com` / `Test@123`
+- 2 projects linked to that user
+- 3 tasks per project (6 tasks total)
 
 ### Run it:
 
@@ -124,14 +125,14 @@ python seed.py
 
 You'll see:
 ```
-✅ Seeding done!
+Seeding done!
 ```
 
-> 🔴 Run migrations **before** running the seed. And run this from inside the `backend/` folder, not root.
+> Run migrations **before** running the seed. And run this from inside the `backend/` folder, not root.
 
 ---
 
-## 🧪 Running Tests
+## Running Tests
 
 Tests are written with **pytest** + **pytest-django**.
 
@@ -146,11 +147,11 @@ pytest
 - `test_create_project` — can an authenticated user create a project?
 - `test_list_projects` — does the project list return correctly?
 
-> 🔴 Tests use an isolated test database — your real data is safe.
+> Tests use an isolated test database — your real data is safe.
 
 ---
 
-## 🖥️ Frontend Setup (React + TypeScript)
+## Frontend Setup (React + TypeScript + Tailwind)
 
 ### Prerequisites
 - Node.js 18+
@@ -171,11 +172,9 @@ npm run dev
 
 Frontend is live at: `http://localhost:5173`
 
-> Make sure the backend is running too, otherwise API calls will fail.
-
 ---
 
-## 🔐 API Endpoints
+## API Endpoints
 
 ### Auth
 
@@ -194,7 +193,7 @@ Frontend is live at: `http://localhost:5173`
 | PATCH | `/api/projects/:id/` | Update project (title, status, etc.) |
 | DELETE | `/api/projects/:id/` | Delete a project |
 
-> 🔴 All project endpoints are **user-scoped** — you only see your own projects. No one can touch another user's data.
+> All project endpoints are **user-scoped** — you only see your own projects. No one can touch another user's data.
 
 ### Tasks (nested under projects)
 
@@ -209,7 +208,7 @@ Frontend is live at: `http://localhost:5173`
 
 ---
 
-## ✅ Features Implemented
+## Features Implemented
 
 ### Backend
 - JWT Authentication (register + login)
@@ -237,7 +236,7 @@ Frontend is live at: `http://localhost:5173`
 
 ---
 
-## ⚡ Bonus Features
+## Bonus Features
 
 - **Pagination** — projects come back in pages of 5
 - **Search** — `?search=title` works on projects
@@ -247,28 +246,24 @@ Frontend is live at: `http://localhost:5173`
 
 ---
 
-## ⚠️ Known Limitations
+## Known Limitations
 
-- No edit form for project title/description (status update works via dropdown)
-- No UI for setting task due dates (field exists in DB, not exposed in frontend yet)
-- No Yup validation on forms yet (React Hook Form is in place)
 - No Docker setup
-- No hosted demo
+- No hosted demo yet, will be done on render
+- Could not use Nest Js, because already using Django.
 
 ---
 
-## 🔴 Quick Red Pills (Things That Matter)
-
 - **Python, not Node** — was allowed. Same REST API concepts, different language.
 - **PostgreSQL, not MongoDB** — relational DB used. Same data relationships, just with SQL.
-- **JWT is stateless** — the token IS the session. No sessions table, no cookies.
+- **JWT is stateless** — the token IS the session. No need for sessions table or cookies.
 - **Nested routing** — tasks live under `/projects/:id/tasks/` because a task without a project makes no sense.
-- **Passwords** — Django hashes passwords with PBKDF2 by default. Equivalent to bcrypt. Secure.
+- **Passwords** — Django hashes passwords by default. Equivalent to bcrypt. Secure.
 - **User scoping** — `get_queryset` filters by `request.user` so users can never see each other's data.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Tech |
 |-------|------|
@@ -279,14 +274,14 @@ Frontend is live at: `http://localhost:5173`
 | HTTP Client | Axios |
 | Forms | React Hook Form |
 | Routing | React Router v6 |
-| Styling | Inline styles (dark theme) |
+| Styling | Inline styles (dark theme), Tailwind|
 | Tests | Pytest, pytest-django |
 
 ---
 
-## 👤 Test Credentials (after seeding)
+## Test Credentials (after seeding)
 
 ```
-Email:    test@example.com
-Password: Test@123
+Email:    admin@gmail.com
+Password: 123456
 ```
