@@ -61,7 +61,7 @@ def seed():
             description=f'Task {i+1} for project 2'
         )
 
-    print("✅ Seeding done!")
+    print("Seeding done!")
 
 if __name__ == '__main__':
     seed()
