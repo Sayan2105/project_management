@@ -249,7 +249,6 @@ Frontend is live at: `http://localhost:5173`
 ## Known Limitations
 
 - No Docker setup
-- No hosted demo yet, will be done on render
 - Could not use Nest Js, because already using Django.
 
 ---
@@ -279,9 +278,25 @@ Frontend is live at: `http://localhost:5173`
 
 ---
 
+
+## Live Demo
+
+| Layer    | URL |
+|----------|-----|
+| Frontend | https://project-management-caew-khlomqdux-sayan2105s-projects.vercel.app/ |
+| Backend  | https://projectmanagement-production-3f46.up.railway.app |
+
+
+---
+
 ## Test Credentials (after seeding)
 
 ```
 Email:    admin@gmail.com
 Password: 123456
+
+And
+
+Email:    test@example.com
+Password: Test@123
 ```
